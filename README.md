@@ -1,4 +1,4 @@
-## Test zur Einschätzung der Maximierungstendenz
+## Test zur Erfassung der individuellen Maximierungstendenz
 
 Der Test orientiert sich an der deutschsprachigen Fassung der Maximierungsskala und der Skala zu dispositionellem Bedauern aus folgendem Paper:
 
