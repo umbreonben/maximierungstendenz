@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" type="image/svg+xml" href="./favicon/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="96x96" href="./favicon/favicon-96x96.png" />
+  <link rel="icon" href="./favicon/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./favicon/apple-touch-icon.png" />
+  <link rel="manifest" href="./favicon/site.webmanifest" />
+  <title>Test zur Erfassung der individuellen Maximierungstendenz</title>
+
+  <style>
+    * {
+      box-sizing:border-box;
+    }
+
+    body {
+      margin:0;
+      font-family:Inter, Arial, Helvetica, sans-serif;
+      background:#f3f7fb;
+      color:#213547;
+      padding:32px 18px 56px;
+      line-height:1.5;
+    }
+
+    .container {
+      max-width:980px;
+      margin:auto;
+      padding:0;
+    }
+
+    h1 {
+      margin:0;
+      font-size:clamp(2rem, 4vw, 3.2rem);
+      line-height:1.05;
+      color:#16324a;
+    }
+
+    .intro {
+      margin-bottom:34px;
+      padding:10px 0 6px;
+    }
+
+    .eyebrow {
+      margin:0 0 10px;
+      font-size:0.82rem;
+      font-weight:700;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      color:#2e7ca8;
+    }
+
+    p.description {
+      margin:14px 0 0;
+      color:#5b7186;
+      max-width:760px;
+      font-size:1.02rem;
+    }
+
+    .description a {
+      color:#2e7ca8;
+      text-decoration:none;
+      font-weight:600;
+    }
+
+    .description a:hover {
+      text-decoration:underline;
+    }
+
+    .credit {
+      display:block;
+      margin:14px 0;
+      color:#31485d;
+      font-weight:600;
+    }
+
+    .scale-note {
+      display:block;
+      margin-top:14px;
+      color:#5b7186;
+    }
+
+    .question {
+      margin-bottom:18px;
+      padding:26px 24px;
+      border-radius:18px;
+      background:#f8fbfd;
+      border:1px solid #dce8f1;
+    }
+
+    .question.error {
+      border-color:#d96a4f;
+    }
+
+    .question h3 {
+      margin:0 0 22px;
+      font-size:1.08rem;
+      text-align:center;
+      color:#24384a;
+    }
+
+    .question-error {
+      display:none;
+      margin-top:14px;
+      color:#c45137;
+      font-size:0.92rem;
+      font-weight:600;
+      text-align:center;
+    }
+
+    .question.error .question-error {
+      display:block;
+    }
+
+    .scale {
+      display:grid;
+      grid-template-columns:minmax(110px, 1fr) repeat(9, minmax(36px, 52px)) minmax(110px, 1fr);
+      gap:10px;
+      align-items:center;
+    }
+
+    .edge-label {
+      font-size:0.95rem;
+      font-weight:600;
+      color:#698096;
+      white-space:nowrap;
+    }
+
+    .edge-label.right {
+      text-align:right;
+    }
+
+    .choice {
+      position:relative;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      width:100%;
+      aspect-ratio:1 / 1;
+      min-height:36px;
+    }
+
+    .choice input {
+      position:absolute;
+      opacity:0;
+      pointer-events:none;
+    }
+
+    .dot {
+      width:var(--size);
+      height:var(--size);
+      aspect-ratio:1 / 1;
+      max-width:100%;
+      max-height:100%;
+      border-radius:50%;
+      border:2px solid var(--ring);
+      background:#ffffff;
+    }
+
+    .choice:hover .dot {
+      transform:scale(1.07);
+    }
+
+    .choice input:checked + .dot {
+      background:var(--fill);
+      border-color:var(--fill);
+      outline:4px solid var(--glow);
+      transform:scale(1.04);
+    }
+
+    button {
+      width:100%;
+      padding:18px;
+      border:none;
+      border-radius:14px;
+      background:#2e7ca8;
+      color:white;
+      font-size:1rem;
+      font-weight:700;
+      cursor:pointer;
+      transition:0.2s ease;
+      margin-top:20px;
+    }
+
+    button:hover {
+      background:#256b91;
+    }
+
+    .result {
+      margin-top:40px;
+      padding:30px;
+      border-radius:18px;
+      background:#f8fbfd;
+      border:1px solid #dce8f1;
+      display:none;
+    }
+
+    .score {
+      font-size:1.3rem;
+      margin-bottom:20px;
+    }
+
+    .badge {
+      display:inline-block;
+      margin:0 0 16px;
+      padding:10px 16px;
+      border-radius:999px;
+      background:#d8edf8;
+      color:#1d5f82;
+      font-size:0.95rem;
+      font-weight:700;
+    }
+
+    .badge-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:16px;
+    }
+
+    .source {
+      margin-top:28px;
+      padding-top:22px;
+      border-top:1px solid #dce8f1;
+      color:#5b7186;
+      font-size:0.95rem;
+    }
+
+    .source strong {
+      display:block;
+      margin-bottom:8px;
+      color:#24384a;
+    }
+
+    .source a {
+      color:#2e7ca8;
+      text-decoration:none;
+      font-weight:600;
+    }
+
+    .source a:hover {
+      text-decoration:underline;
+    }
+
+    @media(max-width:900px) {
+      .scale{
+        grid-template-columns:1fr repeat(9, minmax(28px, 1fr)) 1fr;
+        gap:8px;
+      }
+    }
+
+    @media(max-width:760px) {
+      body{
+        padding:18px 12px 40px;
+      }
+
+      .intro {
+        margin-bottom:26px;
+      }
+
+      .question {
+        padding:22px 14px;
+      }
+
+      .scale {
+        grid-template-columns:repeat(9, minmax(24px, 1fr));
+        row-gap:12px;
+      }
+
+      .edge-label {
+        grid-row:2;
+        grid-column:1 / 4;
+        text-align:left;
+        white-space:normal;
+        font-size:0.88rem;
+      }
+
+      .edge-label.right {
+        grid-row:2;
+        grid-column:7 / 10;
+        text-align:right;
+      }
+
+      .question h3 {
+        font-size:1rem;
+      }
+
+      .choice .dot {
+        width:calc(var(--size) * 0.82);
+        height:calc(var(--size) * 0.82);
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="intro">
+    <p class="eyebrow">Maximierungstendenz</p>
+    <h1>Test zur Erfassung der individuellen Maximierungstendenz</h1>
+
+    <p class="description">
+      Dieser Test misst, wie stark du dazu neigst, immer nach der besten möglichen Option zu suchen und wie sehr du Entscheidungen im Nachhinein hinterfragst.
+      <span class="credit">
+        Grundlage ist das Paper
+        <a href="https://www.researchgate.net/publication/240218060_Lieber_die_Taube_auf_dem_Dach" target="_blank" rel="noopener noreferrer">Lieber die Taube auf dem Dach!</a>
+        von Rainer Greifeneder und Cornelia Betsch.
+      </span>
+      <span class="scale-note">
+        Bewerte jede Aussage auf einer <strong>9-stufigen Skala</strong> zwischen <strong>links = trifft nicht zu</strong> und <strong>rechts = trifft zu</strong>.
+      </span>
+    </p>
+  </div>
+
+  <form id="testForm"></form>
+
+  <button onclick="calculateResult()">Ergebnis anzeigen</button>
+
+  <div class="result" id="result">
+    <h2>Dein Ergebnis</h2>
+
+    <div class="score" id="maxiScore"></div>
+    <div class="score" id="regretScore"></div>
+    <div class="badge-row">
+      <div class="badge" id="resultBadge"></div>
+      <div class="badge" id="regretBadge"></div>
+    </div>
+
+    <p id="interpretation"></p>
+  </div>
+
+  <div class="source">
+    Dieser Test basiert auf dem Paper
+    <a href="https://www.researchgate.net/publication/240218060_Lieber_die_Taube_auf_dem_Dach" target="_blank" rel="noopener noreferrer">Lieber die Taube auf dem Dach! (Greifeneder &amp; Betsch, 2006)</a>.
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  {
+    type: "maxi",
+    text: "Wenn ich fernsehe, zappe ich durch die Programme und überfliege oft die zur Verfügung stehenden Alternativen, sogar wenn ich eigentlich eine bestimmte Sendung sehen möchte."
+  },
+  {
+    type: "maxi",
+    text: "Wenn ich im Auto Radio höre, prüfe ich oft die anderen Radiosender daraufhin, ob etwas Besseres gespielt wird, sogar wenn ich relativ zufrieden mit dem bin, was ich gerade höre."
+  },
+  {
+    type: "maxi",
+    text: "Mit Beziehungen ist es wie mit Kleidungsstücken: Ich gehe davon aus, dass ich viele ausprobieren muss, bevor ich die perfekte Passung finde."
+  },
+  {
+    type: "maxi",
+    text: "Egal wie zufrieden ich mit meinem Beruf bin, es ist immer sinnvoll, nach besseren Optionen Ausschau zu halten."
+  },
+  {
+    type: "maxi",
+    text: "Ich fantasiere oft darüber, ein Leben zu leben, das sich sehr von meinem jetzigen unterscheidet."
+  },
+  {
+    type: "maxi",
+    text: "Ich bin ein großer Freund von Ranglisten (die besten Filme, die besten Sänger, die besten Sportler, die besten Bücher, etc.)."
+  },
+  {
+    type: "maxi",
+    text: "Es fällt mir häufig schwer, ein Geschenk für einen Freund zu kaufen."
+  },
+  {
+    type: "maxi",
+    text: "Wenn ich einkaufen gehe, fällt es mir schwer, Kleidungsstücke zu finden, die ich richtig gut finde."
+  },
+  {
+    type: "maxi",
+    text: "Videos auszuleihen ist sehr schwierig. Ich mühe mich stets damit ab, das Beste auszusuchen."
+  },
+  {
+    type: "maxi",
+    text: "Ich finde Schreiben schwierig, sogar wenn es nur darum geht, einem Freund einen Brief zu schreiben. Es ist so schwer, die richtigen Worte zu finden. Auch von einfachen Sachen mache ich oft mehrere Entwürfe."
+  },
+  {
+    type: "maxi",
+    text: "Egal was ich mache – ich messe mich an sehr hohen Standards."
+  },
+  {
+    type: "maxi",
+    text: "Ich gebe mich nie mit dem Zweitbesten zufrieden."
+  },
+  {
+    type: "maxi",
+    text: "Wenn ich eine Entscheidung treffen soll, versuche ich mir alle anderen Möglichkeiten vorzustellen, sogar die, die momentan gar nicht zur Verfügung stehen."
+  },
+
+  {
+    type: "regret",
+    text: "Nach jeder Entscheidung, die ich getroffen habe, frage ich mich, was passiert wäre, wenn ich mich anders entschieden hätte."
+  },
+  {
+    type: "regret",
+    text: "Wenn ich eine Entscheidung treffe, versuche ich hinterher herauszufinden, zu welchem Ergebnis die anderen Alternativen geführt hätten."
+  },
+  {
+    type: "regret",
+    text: "Selbst eine gute Entscheidung empfinde ich als Misserfolg, wenn sich herausstellt, dass eine andere Möglichkeit besser gewesen wäre."
+  },
+  {
+    type: "regret",
+    text: "Wenn ich über mein Leben nachdenke, kommen mir oft verpasste Chancen in den Sinn."
+  },
+  {
+    type: "regret-reverse",
+    text: "Wenn ich mich einmal entschieden habe, hinterfrage ich diese Entscheidung nicht."
+  }
+];
+
+const form = document.getElementById("testForm");
+
+questions.forEach((q, index) => {
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "question";
+
+  wrapper.innerHTML = `
+    <h3>${index + 1}. ${q.text}</h3>
+
+    <div class="scale">
+      <div class="edge-label">Trifft nicht zu</div>
+      ${[
+        { value: 1, size: 42, fill: "#d96a4f", ring: "#e8a191", glow: "rgba(217, 106, 79, 0.18)" },
+        { value: 2, size: 38, fill: "#db8757", ring: "#ecb08d", glow: "rgba(219, 135, 87, 0.18)" },
+        { value: 3, size: 34, fill: "#db9462", ring: "#edb998", glow: "rgba(219, 148, 98, 0.18)" },
+        { value: 4, size: 30, fill: "#e2ab74", ring: "#efcaa8", glow: "rgba(226, 171, 116, 0.18)" },
+        { value: 5, size: 24, fill: "#b8c7d3", ring: "#d3dde5", glow: "rgba(184, 199, 211, 0.22)" },
+        { value: 6, size: 30, fill: "#8fced6", ring: "#c2e5ea", glow: "rgba(143, 206, 214, 0.18)" },
+        { value: 7, size: 34, fill: "#65b8c6", ring: "#a8d9e0", glow: "rgba(101, 184, 198, 0.18)" },
+        { value: 8, size: 38, fill: "#43a4b6", ring: "#8dcbd4", glow: "rgba(67, 164, 182, 0.18)" },
+        { value: 9, size: 42, fill: "#2b93a9", ring: "#76bfd0", glow: "rgba(43, 147, 169, 0.18)" }
+      ].map((choice)=>`
+        <label class="choice" style="--size:${choice.size}px; --fill:${choice.fill}; --ring:${choice.ring}; --glow:${choice.glow};">
+          <input type="radio" name="q${index}" value="${choice.value}" aria-label="${choice.value}">
+          <span class="dot"></span>
+        </label>
+      `).join("")}
+      <div class="right edge-label">Trifft zu</div>
+    </div>
+    <div class="question-error">Bitte wähle eine Antwort aus.</div>
+  `;
+
+  form.appendChild(wrapper);
+
+  wrapper.querySelectorAll('input[type="radio"]').forEach((input) => {
+    input.addEventListener("change", () => {
+      wrapper.classList.remove("error");
+    });
+  });
+});
+
+function calculateResult(){
+
+  let maxiValues = [];
+  let regretValues = [];
+  let firstUnanswered = null;
+
+  document.querySelectorAll(".question").forEach((question) => {
+    question.classList.remove("error");
+  });
+
+  for(let i = 0; i < questions.length; i++){
+
+    const checked = document.querySelector(`input[name="q${i}"]:checked`);
+
+    if(!checked){
+      const questionElement = document.querySelector(`input[name="q${i}"]`).closest(".question");
+      questionElement.classList.add("error");
+
+      if(!firstUnanswered){
+        firstUnanswered = questionElement;
+      }
+
+      continue;
+    }
+
+    let value = parseInt(checked.value);
+
+    if(questions[i].type === "maxi"){
+      maxiValues.push(value);
+    }
+
+    if(questions[i].type === "regret"){
+      regretValues.push(value);
+    }
+
+    if(questions[i].type === "regret-reverse"){
+      regretValues.push(10 - value);
+    }
+  }
+
+  if(firstUnanswered){
+      firstUnanswered.scrollIntoView({
+        behavior:"smooth",
+        block:"center"
+      });
+      return;
+    }
+
+  const maxiAvg =
+    maxiValues.reduce((a,b)=>a+b,0) / maxiValues.length;
+
+  const regretAvg =
+    regretValues.reduce((a,b)=>a+b,0) / regretValues.length;
+
+  const maximizingMedian = 4.77;
+
+  let badge = maxiAvg >= maximizingMedian ? "Maximierer" : "Satisfizierer";
+  let regretBadge = "";
+  let interpretation = "";
+  let regretLevel = "";
+
+  if(regretAvg < 4){
+    regretBadge = "Niedriges Bedauern";
+    regretLevel = "low";
+  }
+  else if(regretAvg > 6){
+    regretBadge = "Hohes Bedauern";
+    regretLevel = "high";
+  }
+  else{
+    regretBadge = "Mittleres Bedauern";
+    regretLevel = "mid";
+  }
+
+  if(badge === "Satisfizierer"){
+    if(regretLevel === "low"){
+      interpretation = "Du neigst eher dazu, nach einer passenden und ausreichend guten Lösung zu entscheiden, statt lange nach der bestmöglichen Alternative zu suchen, und hinterfragst Entscheidungen im Nachhinein meist nicht lange.";
+    }
+    else if(regretLevel === "high"){
+      interpretation = "Du neigst eher dazu, nach einer passenden und ausreichend guten Lösung zu entscheiden, statt lange nach der bestmöglichen Alternative zu suchen, hinterfragst Entscheidungen im Nachhinein aber dennoch stärker.";
+    }
+    else{
+      interpretation = "Du neigst eher dazu, nach einer passenden und ausreichend guten Lösung zu entscheiden, statt lange nach der bestmöglichen Alternative zu suchen, und blickst auf Entscheidungen im Nachhinein mit einem mittleren Maß an Zweifel zurück.";
+    }
+  }
+  else{
+    if(regretLevel === "low"){
+      interpretation = "Du neigst eher dazu, nach der bestmöglichen statt nur nach einer ausreichend guten Lösung zu suchen, kannst Entscheidungen danach aber meist gut stehen lassen.";
+    }
+    else if(regretLevel === "high"){
+      interpretation = "Du neigst eher dazu, nach der bestmöglichen statt nur nach einer ausreichend guten Lösung zu suchen, und hinterfragst Entscheidungen im Nachhinein zusätzlich stärker.";
+    }
+    else{
+      interpretation = "Du neigst eher dazu, nach der bestmöglichen statt nur nach einer ausreichend guten Lösung zu suchen, und blickst auf Entscheidungen im Nachhinein mit einem mittleren Maß an Zweifel zurück.";
+    }
+  }
+
+  document.getElementById("resultBadge").innerText = badge;
+  document.getElementById("regretBadge").innerText = regretBadge;
+
+  document.getElementById("maxiScore").innerHTML =
+    `<strong>Maximierungswert:</strong> ${maxiAvg.toFixed(2)} / 9`;
+
+  document.getElementById("regretScore").innerHTML =
+    `<strong>Bedauernswert:</strong> ${regretAvg.toFixed(2)} / 9`;
+
+  document.getElementById("interpretation").innerText =
+    interpretation;
+
+  document.getElementById("result").style.display = "block";
+
+  window.scrollTo({
+    top: document.body.scrollHeight,
+    behavior: "smooth"
+  });
+}
+</script>
+
+</body>
+</html>
